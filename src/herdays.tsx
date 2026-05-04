@@ -1,3 +1,5 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
 import { useState, useEffect, useRef, useMemo } from "react";
 
 // ── Storage ───────────────────────────────────────────────────────────────────
@@ -522,3 +524,6 @@ export default function App() {
     </div>
   );
 }
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
