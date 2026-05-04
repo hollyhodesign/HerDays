@@ -1,7 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom/client"; // 新增這行來驅動 React
-import { useState, useEffect, useRef, useMemo } from "react";
-
 // ── Storage ───────────────────────────────────────────────────────────────────
 const SK = {
   logs: "herdays_logs", settings: "herdays_settings", pin: "herdays_pin",
@@ -526,12 +524,3 @@ export default function App() {
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App/>);
-    ```
-    *這能解決你看到的「空白畫面」，因為它真正開始將代碼渲染到 `index.html` 的 `<div id="root"></div>` 中。*
-
----
-
-### 3. 修正 `index.html` 路徑
-當你完成上述的檔案移動後，請確保根目錄下的 `index.html` 腳本路徑是指向 `src`：
-```html
-<script type="module" src="/src/herdays.tsx"></script>
