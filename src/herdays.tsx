@@ -233,3 +233,8 @@ export default function App() {
         </div>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={() => { setSettingsDraft(settings); setShowSettings(true); }} style={{ width:38, height:38, borderRadius:12, border:"1px solid rgba(168,85,247,0.35)", background:"rgba(255,255,255,0.6)", cursor:"pointer" }}>⚙</button>
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+http://googleusercontent.com/immersive_entry_chip/0
