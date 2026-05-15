@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import ReactDOM from "react-dom/client";
 
-// ── 1. 儲存與邏輯工具 (放在組件外面) ──────────────────────────────────────────
+// ── Storage ───────────────────────────────────────────────────────────────────
 const SK = {
   logs: "herdays_logs", settings: "herdays_settings", pin: "herdays_pin",
   lastPinCheck: "herdays_last_pin_check", pinEnabled: "herdays_pin_enabled",
@@ -39,7 +39,7 @@ function isMeaningful(e) {
   return e.flow_level !== null || e.pain_level !== null || e.medication || (e.note ?? "").trim() !== "";
 }
 
-// ── 2. 常量與樣式 ────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 const BLOOD_COLORS = [
   { name: "Pink Light",   hex: "#FFB7C5" },
   { name: "Bright Red",   hex: "#FF0000" },
@@ -89,14 +89,14 @@ function getWeeks() {
   return weeks;
 }
 
-// ── 3. 子組件 ───────────────────────────────────────────────────────────────
+// ── Sub-components ────────────────────────────────────────────────────────────
 function PainDots({ level, onDark }) {
   if (!level || level <= 0) return null;
-  const color = onDark ? "rgba(255,255,255,0.88)" : "#9333ea";
+  const color = onDark ? "rgba(255,255,255,0.92)" : "#9333ea";
   return (
-    <div style={{ display:"flex", flexDirection:"row", gap:2, alignItems:"center", flexWrap:"nowrap" }}>
+    <div style={{ display:"flex", flexDirection:"row", gap:1.5, alignItems:"center", flexWrap:"nowrap" }}>
       {[...Array(Math.min(level, 5))].map((_, i) => (
-        <div key={i} style={{ width:3.5, height:3.5, borderRadius:"50%", background:color, flexShrink:0 }} />
+        <div key={i} style={{ width:3, height:3, borderRadius:"50%", background:color, flexShrink:0 }} />
       ))}
     </div>
   );
@@ -110,10 +110,6 @@ function Drop({ size = 11, color = "#9b7fb6" }) {
   );
 }
 
-function NoteIcon() {
-  return <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(124,58,237,0.45)" }} />;
-}
-
 function Label({ children }) {
   return (
     <div style={{ fontSize:11, fontWeight:700, color:"#3b0764", marginBottom:7, letterSpacing:0.8, textTransform:"uppercase", background:"rgba(237,233,254,0.85)", display:"inline-block", padding:"2px 8px", borderRadius:6 }}>
@@ -124,24 +120,16 @@ function Label({ children }) {
 
 function IconBtn({ children, onClick, disabled, danger }) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{ width:36, height:36, borderRadius:10, border: danger ? "1.5px solid rgba(219,39,119,0.28)" : "1.5px solid rgba(124,58,237,0.28)", background: disabled ? "rgba(220,210,240,0.3)" : "rgba(255,255,255,0.65)", cursor: disabled ? "default" : "pointer", fontSize:18, color: danger ? "#be185d" : (disabled ? "#c4b5fd" : "#7c3aed"), display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, flexShrink:0 }}>
+    <button onClick={onClick} disabled={disabled} style={{ width:36, height:36, borderRadius:10, border: danger ? "1.5px solid rgba(219,39,119,0.28)" : "1.5px solid rgba(124,58,237,0.28)", background: disabled ? "rgba(220,210,240,0.3)" : "rgba(255,255,255,0.65)", cursor: disabled ? "default" : "pointer", fontSize:18, color: danger ? "#be185d" : (disabled ? "#c4b5fd" : "#7c3aed"), display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, flexShrink:0, outline:"none" }}>
       {children}
     </button>
   );
 }
 
-function Btn({ children, onClick }) {
-  return (
-    <button onClick={onClick} style={{ width:38, height:38, borderRadius:12, border:"1px solid rgba(168,85,247,0.35)", background:"rgba(255,255,255,0.6)", fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      {children}
-    </button>
-  );
-}
+const glass = { background:"rgba(255,255,255,0.72)", backdropFilter:"blur(18px)", border:"1px solid rgba(168,85,247,0.18)", borderRadius:20, boxShadow:"0 4px 24px rgba(160,120,200,0.10)" };
+const overlay = { position:"fixed", inset:0, zIndex:100, background:"rgba(80,40,120,0.35)", backdropFilter:"blur(8px)", display:"flex", alignItems:"flex-end", justifyContent:"center" };
 
-const glass = { background:"rgba(255,255,255,0.72)", backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", border:"1px solid rgba(168,85,247,0.18)", borderRadius:20, boxShadow:"0 4px 24px rgba(160,120,200,0.10)" };
-const overlay = { position:"fixed", inset:0, zIndex:100, background:"rgba(80,40,120,0.35)", backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)", display:"flex", alignItems:"flex-end", justifyContent:"center" };
-
-// ── 4. 主組件 App ────────────────────────────────────────────────────────────
+// ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [logs, setLogs] = useState(() => cleanOldLogs(load(SK.logs, {})));
   const [settings, setSettings] = useState(() => load(SK.settings, DEFAULT_SETTINGS));
@@ -158,9 +146,6 @@ export default function App() {
   const [panelEntry, setPanelEntry] = useState({ ...BLANK });
   const [showSettings, setShowSettings] = useState(false);
   const [showBackup, setShowBackup] = useState(false);
-  const [exportStr, setExportStr] = useState("");
-  const [importStr, setImportStr] = useState("");
-  const [importMsg, setImportMsg] = useState("");
   const [settingsDraft, setSettingsDraft] = useState(settings);
 
   const todayRowRef = useRef(null);
@@ -188,12 +173,11 @@ export default function App() {
   const weeks = useMemo(() => getWeeks(), []);
 
   const openDay = useCallback((ds) => {
-    if (!pinUnlocked) return;
     setSelectedDay(ds);
     const saved = logs[ds];
     setPanelEntry(saved ? { ...BLANK, ...saved } : { ...BLANK });
     setShowPanel(true);
-  }, [pinUnlocked, logs]);
+  }, [logs]);
 
   const navigateDay = (delta) => {
     const next = addDays(selectedDay, delta);
@@ -230,8 +214,7 @@ export default function App() {
       <div style={{ position:"sticky", top:0, zIndex:50, ...glass, borderRadius:"0 0 20px 20px", padding:"13px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <span style={{ fontSize:22, fontWeight:800, background:"linear-gradient(90deg,#7c3aed,#db2777)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>HerDays</span>
         <div style={{ display:"flex", gap:8 }}>
-          <Btn onClick={() => { setSettingsDraft(settings); setShowSettings(true); }}>⚙</Btn>
-          <Btn onClick={() => setShowBackup(true)}>☁</Btn>
+          <button onClick={() => { setSettingsDraft(settings); setShowSettings(true); }} style={{ width:38, height:38, borderRadius:12, border:"1px solid rgba(168,85,247,0.35)", background:"rgba(255,255,255,0.6)", cursor:"pointer" }}>⚙</button>
         </div>
       </div>
 
@@ -251,12 +234,13 @@ export default function App() {
                   const hasFlow = log && log.flow_level != null;
                   const fillPct = hasFlow ? (FLOW_FILL[log.flow_level] || 0) : 0;
                   const rgb = log?.blood_color ? hexToRgb(log.blood_color) : "180,100,120";
+                  const isDark = fillPct > 55;
                   return (
                     <div key={di} onClick={() => pinUnlocked && openDay(ds)} style={{ height:52, borderRadius:12, border:isToday?"2.5px solid #7c3aed":"1px solid rgba(200,180,230,0.25)", position:"relative", overflow:"hidden", background:isToday?"rgba(167,139,250,0.15)":"rgba(255,255,255,0.28)" }}>
                        {fillPct > 0 && <div style={{ position:"absolute", bottom:0, left:0, right:0, height:`${fillPct}%`, background:`rgba(${rgb},0.75)` }} />}
                        <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                          <span style={{ fontSize:13, fontWeight:700, color:fillPct>55?"#fff":"#3b0764" }}>{day.getDate()}</span>
-                          {log?.pain_level > 0 && <PainDots level={log.pain_level} onDark={fillPct>55} />}
+                          <span style={{ fontSize:13, fontWeight:700, color:isDark?"#fff":"#3b0764" }}>{day.getDate()}</span>
+                          {log?.pain_level > 0 && <PainDots level={log.pain_level} onDark={isDark} />}
                        </div>
                     </div>
                   );
@@ -288,15 +272,27 @@ export default function App() {
           <div style={{ ...glass, width:300, padding:30, textAlign:"center" }}>
             <div style={{ fontSize:18, fontWeight:800, marginBottom:15 }}>{pinMode==="setup"?"Set PIN":"Unlock"}</div>
             <input type="password" value={pinInput} onChange={e=>setPinInput(e.target.value)} style={{ width:"100%", textAlign:"center", fontSize:24, padding:10, borderRadius:12, border:"1.5px solid #ddd" }} />
-            <button onClick={submitPin} style={{ width:"100%", marginTop:15, height:40, borderRadius:10, background:"#7c3aed", color:"#fff", border:\"none\" }}>OK</button>
+            <button onClick={submitPin} style={{ width:"100%", marginTop:15, height:40, borderRadius:10, background:"#7c3aed", color:"#fff", border:"none" }}>OK</button>
           </div>
+        </div>
+      )}
+
+      {showSettings && (
+        <div style={overlay} onClick={() => setShowSettings(false)}>
+           <div style={{ ...glass, width:"100%", maxWidth:480, padding:22, borderRadius:"24px 24px 0 0" }} onClick={e => e.stopPropagation()}>
+              <Label>Settings</Label>
+              <div style={{ marginTop:20 }}>
+                 <p style={{ fontSize:13, fontWeight:700 }}>Cycle Length: {settingsDraft.cycleLength} days</p>
+                 <input type="range" min="20" max="40" value={settingsDraft.cycleLength} onChange={e => setSettingsDraft({...settingsDraft, cycleLength: parseInt(e.target.value)})} style={{ width:"100%" }} />
+              </div>
+              <button onClick={() => { setSettings(settingsDraft); setShowSettings(false); }} style={{ width:"100%", marginTop:20, height:46, borderRadius:14, background:"#7c3aed", color:"#fff", border:"none" }}>Apply</button>
+           </div>
         </div>
       )}
     </div>
   );
 }
 
-// ── 5. 啟動渲染 (必須在 App 組件定義完之後) ───────────────────────────────────
 const rootElement = document.getElementById("root");
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
